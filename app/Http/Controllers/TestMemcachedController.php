@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class TestMemcachedController extends Controller
 {
     // Function to get data (simulating a database query)
-    function getDataFromDb($key) {
+    function getDataFromDb() {
         $data = DB::table('user')
                 ->where('nama_lengkap', 'like', '%karyo%')
                 ->count();
@@ -22,15 +22,15 @@ class TestMemcachedController extends Controller
         $data = $memcached->get($key);
         if ($data === false) {
             // If not in cache, get from DB and store in cache
-            $data = $this->getDataFromDb($key);
-            $memcached->set($key, $data, 60); // Cache for 60 seconds
+            $data = $this->getDataFromDb();
+            $memcached->set($key, $data, 600); // Cache for 600 seconds
         }
         return $data;
     }
 
     // Function to get data without Memcached
-    function getDataWithoutCache($key) {
-        return $this->getDataFromDb($key);
+    function getDataWithoutCache() {
+        return $this->getDataFromDb();
     }
 
     // Test function
@@ -43,9 +43,9 @@ class TestMemcachedController extends Controller
             if ($useCache)
                 $data = $this->getDataWithCache($key, $memcached);
             else
-                $data = $this->getDataWithoutCache($key);
+                $data = $this->getDataWithoutCache();
 
-            echo "Request #$i. $data<br>";
+            // echo "Request #$i. $data<br>";
         }
         
         $endTime = microtime(true);
@@ -57,18 +57,36 @@ class TestMemcachedController extends Controller
     // Main comparison
     function comparePerformance(int $numRequests = 100, \Memcached $memcached = null, $useCache = true) {
         $time = $this->runPerformanceTest($useCache, $numRequests, $memcached);
-        $str_time = $useCache ? "Time with cache" : "Time without cache";
-        echo "$str_time: " . number_format($time, 2) . " seconds<br>";
+        $str_time = $useCache ? "[WITH CACHE]" : "[WITHOUT CACHE]";
+        echo "$str_time: Completed $numRequests requests in " . number_format($time, 2) . " seconds<br>";
     }
 
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function loop()
     {
         $memcached = new \Memcached();
         $memcached->addServer('localhost', 11211);
 
         $this->comparePerformance(numRequests: 100, memcached: $memcached, useCache: false);
+    }
+
+    public function loadTest($method) {
+        // with cache
+        if($method == 'cache') {
+            $memcached = new \Memcached();
+            $memcached->addServer('localhost', 11211);
+
+            $key = "key_loadtest";
+            $data = $this->getDataWithCache($key, $memcached);
+        } 
+
+        // without cache
+        else {
+            $data = $this->getDataWithoutCache();
+        }
+
+        
     }
 }
