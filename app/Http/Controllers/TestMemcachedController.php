@@ -9,9 +9,9 @@ class TestMemcachedController extends Controller
 {
     // Function to get data (simulating a database query)
     function getDataFromDb() {
-        $data = DB::table('user')
-                ->where('nama_lengkap', 'like', '%karyo%')
-                ->count();
+        $data = DB::table('config_app')
+                ->where('config_key', 'CACHE_ENABLE')
+                ->first();
 
         return $data;
     }
@@ -64,7 +64,7 @@ class TestMemcachedController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function loop()
+    public function loopTest()
     {
         $memcached = new \Memcached();
         $memcached->addServer('localhost', 11211);

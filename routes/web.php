@@ -7,4 +7,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/test-memcached', [TestMemcachedController::class, 'index'])->name('testMemcached.index');
+Route::get('/loop-test', [TestMemcachedController::class, 'loopTest'])->name('testMemcached.loopTest');
+Route::get('/load-test/{method}', [TestMemcachedController::class, 'loadTest'])->name('testMemcached.loadTest');
